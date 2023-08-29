@@ -2,24 +2,31 @@
 
 pragma solidity ^0.8.18;
 
+import {PriceConverter} from "./PriceConverter.sol";
+
 contract FundMe {
-    uint256 minimumUsd = 5;
+    using PriceConverter for uint256;
+
+    uint256 minimumUsd = 5e18;
+
+    address[] public funders;
+    mapping(address => uint256) public addressToAmountFunded;
 
     function fund() public payable {
-        require(msg.value >= minimumUsd, "Not enough eth"); // at this point the msg,value is in eth and the minimumUsd is in usd, we're gonna have to fix that
+        
+        require(msg.value.getConversionRate() >= minimumUsd, "Not enough eth"); // at this point the msg,value is in eth and the minimumUsd is in usd, we're gonna have to fix that
+        funders.push(msg.sender);
+        addressToAmountFunded[msg.sender] += msg.value;
     }
 
-    // function withdraw(){
-
-    // }
-
-    function getPrice() public { // To get current eth price
-        // 0x694AA1769357215DE4FAC081bf1f309aDC325306 (got this from docs.chain.link pricefeed)
-
-    }
-
-    function getConversionRate() public { // To get current conversion rate from chainlink
+    function withdraw() public {
+        for(uint256 funderIndex=0; funderIndex < funders.length; funderIndex++){
+            address funder = funders[funderIndex];
+            addressToAmountFunded[funder] = 0;
+        }
+        funders = new address[](0);
 
     }
 
+   
 }
